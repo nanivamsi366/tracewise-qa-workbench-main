@@ -10,16 +10,22 @@ from app.routers.rtm import router as rtm_router
 from app.routers.execution import router as execution_router
 from app.models import TestExecution
 from app.routers.defects import router as defects_router
+from contextlib import asynccontextmanager
+from pathlib import Path
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_db_and_tables()
+    yield
+
 
 app = FastAPI(
     title="TraceWise QA Workbench",
     description="A practical workspace for software quality assurance.",
     version="0.1.0",
+    lifespan=lifespan,
 )
-
-@app.on_event("startup")
-def startup():
-    create_db_and_tables()
 
 
 app.include_router(requirements_router)
@@ -28,11 +34,6 @@ app.include_router(rtm_router)
 app.include_router(execution_router)
 app.include_router(defects_router)
 
-for route in app.routes:
-    print(
-        getattr(route, "methods", None),
-        getattr(route, "path", "Router object"),
-    )
 
 HTML = """
 <!DOCTYPE html>
@@ -150,7 +151,7 @@ HTML = """
 <body>
     <header>
         <div class="brand">Trace<span>Wise</span></div>
-        <div class="badge">● QA WORKSPACE</div>
+        <div class="badge">✓ QA WORKSPACE</div>
     </header>
 
     <main>
@@ -284,9 +285,18 @@ HTML = """
 """
 
 
+DASHBOARD_FILE = (
+    Path(__file__).resolve().parent
+    / "templates"
+    / "dashboard.html"
+)
+
+
 @app.get("/", response_class=HTMLResponse)
 def home():
-    return HTML
+    return HTMLResponse(
+        content=DASHBOARD_FILE.read_text(encoding="utf-8")
+    )
 
 
 @app.get("/api/health")
