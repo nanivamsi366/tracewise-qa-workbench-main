@@ -218,3 +218,25 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# TraceWise QA Workbench - local files
+tracewise.db
+*.db
+*.sqlite
+*.sqlite3
+
+# Generated test reports
+reports/test-report.html
+
+# Python testing
+.pytest_cache/
+__pycache__/
+*.py[cod]
+
+# Local environment variables
+.env
+.env.*
+
+# Virtual environments
+.venv/
+venv/

@@ -3,11 +3,36 @@ from datetime import datetime, timezone
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
+from app.database import create_db_and_tables
+from app.routers.requirements import router as requirements_router
+from app.routers.test_cases import router as test_cases_router
+from app.routers.rtm import router as rtm_router
+from app.routers.execution import router as execution_router
+from app.models import TestExecution
+from app.routers.defects import router as defects_router
+
 app = FastAPI(
     title="TraceWise QA Workbench",
     description="A practical workspace for software quality assurance.",
     version="0.1.0",
 )
+
+@app.on_event("startup")
+def startup():
+    create_db_and_tables()
+
+
+app.include_router(requirements_router)
+app.include_router(test_cases_router)
+app.include_router(rtm_router)
+app.include_router(execution_router)
+app.include_router(defects_router)
+
+for route in app.routes:
+    print(
+        getattr(route, "methods", None),
+        getattr(route, "path", "Router object"),
+    )
 
 HTML = """
 <!DOCTYPE html>
@@ -136,34 +161,38 @@ HTML = """
             software requirements, test cases, and defects in one place.
         </p>
 
-        <section class="cards">
-            <article class="card">
-                <h3>Requirements</h3>
-                <div class="number">0</div>
-                <div class="hint">Ready to be documented</div>
-            </article>
-            <article class="card">
-                <h3>Test cases</h3>
-                <div class="number">0</div>
-                <div class="hint">Ready to be created</div>
-            </article>
-            <article class="card">
-                <h3>Execution status</h3>
-                <div class="number">—</div>
-                <div class="hint">No test runs recorded</div>
-            </article>
-            <article class="card">
-                <h3>Open defects</h3>
-                <div class="number">0</div>
-                <div class="hint">No defects recorded</div>
-            </article>
-        </section>
+<section class="cards">
+    <article class="card">
+        <h3>Requirements</h3>
+        <div class="number" id="requirements-count">0</div>
+        <div class="hint">Total requirements documented</div>
+    </article>
+
+    <article class="card">
+        <h3>Test cases</h3>
+        <div class="number" id="test-cases-count">0</div>
+        <div class="hint">Total test cases created</div>
+    </article>
+
+    <article class="card">
+        <h3>Execution status</h3>
+        <div class="number" id="execution-status">—</div>
+        <div class="hint">Latest test execution</div>
+    </article>
+
+    <article class="card">
+        <h3>Open defects</h3>
+        <div class="number" id="open-defects-count">0</div>
+        <div class="hint">Defects awaiting resolution</div>
+    </article>
+</section>
 
         <section class="panel">
             <h2>Your workspace is ready</h2>
             <p class="intro">
-                This is the first interface prototype. Next, we'll connect
-                it to a database and replace these placeholders with real data.
+    Your QA workspace is connected to the database.
+    Manage requirements, test cases, executions, and defects
+    through your API endpoints.
             </p>
             <span class="status">Prototype initialized</span><br>
             <button onclick="checkStatus()">Check application status</button>
@@ -173,22 +202,83 @@ HTML = """
 
     <footer>TraceWise QA Workbench · Built as a learning project</footer>
 
-    <script>
-        async function checkStatus() {
+<script>
+    async function loadDashboard() {
+        try {
+            const endpoints = [
+                "/api/requirements/",
+                "/api/test-cases/",
+                "/api/executions/",
+                "/api/defects/"
+            ];
+
+            const responses = await Promise.all(
+                endpoints.map(url => fetch(url))
+            );
+
+            if (responses.some(response => !response.ok)) {
+                throw new Error("Failed to fetch dashboard data");
+            }
+
+            const [requirements, testCases, executions, defects] =
+                await Promise.all(
+                    responses.map(response => response.json())
+                );
+
+            document.getElementById("requirements-count").textContent =
+                requirements.length;
+
+            document.getElementById("test-cases-count").textContent =
+                testCases.length;
+
+            const latestExecution = executions.length
+                ? executions[executions.length - 1].status
+                : "None";
+
+            document.getElementById("execution-status").textContent =
+                latestExecution;
+
+            const openDefects = defects.filter(
+                defect => (defect.status || "").toLowerCase() === "open"
+            ).length;
+
+            document.getElementById("open-defects-count").textContent =
+                openDefects;
+
             const result = document.getElementById("result");
-            result.textContent = "Checking...";
+            if (result) {
+                result.textContent = "Dashboard data loaded successfully.";
+            }
 
-            try {
-                const response = await fetch("/api/health");
-                if (!response.ok) throw new Error("Request failed");
+        } catch (error) {
+            console.error("Dashboard loading failed:", error);
 
-                const data = await response.json();
-                result.textContent = data.message;
-            } catch (error) {
-                result.textContent = "Could not reach the server.";
+            const result = document.getElementById("result");
+            if (result) {
+                result.textContent = "Could not load dashboard data. Check the API endpoints.";
             }
         }
-    </script>
+    }
+
+    async function checkStatus() {
+        const result = document.getElementById("result");
+        result.textContent = "Checking...";
+
+        try {
+            const response = await fetch("/api/health");
+            if (!response.ok) {
+                throw new Error("Request failed");
+            }
+
+            const data = await response.json();
+            result.textContent = data.message;
+        } catch (error) {
+            result.textContent = "Could not reach the server.";
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadDashboard);
+</script>
 </body>
 </html>
 """
