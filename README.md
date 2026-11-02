@@ -305,76 +305,53 @@ This project demonstrates practical understanding of:
 
 ## 🧪 Testing & Quality Assurance
 
-TraceWise QA Workbench has been validated through manual API testing, automated testing, and production dashboard verification.
+Quality validation was performed through manual API testing, automated test execution, and production dashboard verification.
 
-Manual API Testing
+### Manual Testing Coverage
 
-Requirements API — Create, Read, Update, Delete
+| Module | Test Coverage |
+|---|---|
+| Requirements | CRUD operations and negative scenarios |
+| Test Cases | CRUD operations and validation |
+| RTM | Requirement coverage and traceability |
+| Test Execution | Execution lifecycle validation |
+| Defects | CRUD operations and negative scenarios |
+| Dashboard | Data and status verification |
 
-Test Cases API — CRUD and negative scenarios
+[View Manual API Testing Report](docs/manual-api-test-report.md)
 
-Requirements Traceability Matrix (RTM) — Coverage validation
+### Automated Testing Results
 
-Test Execution API — CRUD operations
-
-Defects API — CRUD and negative scenarios
-
-HTTP status code and response validation
-
-Dashboard data verification
-
-📄 View Manual API Testing Report
-
-Automated Testing Results
-
-Metric
-
-Result
-
-| Total Test Case | 22 |
+| Metric | Result |
+|---|---:|
+| Total Test Cases | 22 |
 | Passed | 22 |
 | Failed | 0 |
-| Pass Rate |100% |
+| Pass Rate | 100% |
 | Code Coverage | 100% |
 | Statements Covered | 386 / 386 |
 
-📊 View Automated HTML Test Report
+[View Automated HTML Test Report](reports/automated-test-report.html)
 
-Testing Tools
+### Tools & Technologies
 
-Python and Pytest
+- **Language:** Python
+- **Testing:** Pytest, FastAPI TestClient, HTTPX
+- **Coverage & Reporting:** Pytest-Cov, Pytest-HTML
+- **API Documentation:** Swagger UI
+- **CI/CD:** GitHub Actions
 
-FastAPI TestClient
+### Quality Assurance Activities
 
-HTTPX
+- Positive and negative test scenario validation
+- API request and response verification
+- HTTP status code validation
+- Requirement traceability validation
+- Defect lifecycle and collision handling
+- Database session and configuration testing
+- Continuous integration test execution
 
-Swagger UI
-
-Pytest-Cov
-
-Pytest-HTML
-
-GitHub Actions CI
-
-Quality Assurance Evidence
-
-Positive and negative test scenarios
-
-API CRUD validation
-
-Test case lifecycle validation
-
-Defect lifecycle and collision handling
-
-Requirement traceability validation
-
-Database session and configuration testing
-
-Automated test execution through CI
-
-Testing Outcome: All 22 automated tests passed with 100% code coverage across 386 application statements.
-
-📄 **[View Manual API Testing Report](docs/manual-api-test-report.md)**
+**Overall Result:** 22/22 automated tests passed with 100% code coverage across 386 application statements.
 
 ### Automated Testing
 
