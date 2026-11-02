@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
+from fastapi.openapi.docs import get_swagger_ui_html
 
 from app.database import create_db_and_tables
 from app.routers.requirements import router as requirements_router
@@ -25,6 +26,7 @@ app = FastAPI(
     description="A practical workspace for software quality assurance.",
     version="0.1.0",
     lifespan=lifespan,
+    docs_url=None,
 )
 
 
@@ -33,7 +35,145 @@ app.include_router(test_cases_router)
 app.include_router(rtm_router)
 app.include_router(execution_router)
 app.include_router(defects_router)
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui():
+    swagger_html = get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=f"{app.title} - API Documentation",
+        swagger_ui_parameters={
+            "defaultModelsExpandDepth": -1,
+            "displayRequestDuration": True,
+        },
+    )
 
+    html_content = swagger_html.body.decode("utf-8")
+
+    dark_theme = """
+    <style>
+        body {
+            background: #0b1120 !important;
+            color: #e5e7eb !important;
+        }
+
+        .swagger-ui {
+            background: #0b1120 !important;
+            color: #e5e7eb !important;
+        }
+
+        .swagger-ui .topbar {
+            background: #111a2e !important;
+            border-bottom: 1px solid #263653;
+        }
+
+        .swagger-ui .info,
+        .swagger-ui .scheme-container,
+        .swagger-ui .opblock-tag,
+        .swagger-ui .model-title,
+        .swagger-ui .parameter__name,
+        .swagger-ui .response-col_status {
+            color: #e5e7eb !important;
+        }
+
+        .swagger-ui .scheme-container,
+        .swagger-ui section.models {
+            background: #111a2e !important;
+        }
+
+        .swagger-ui .opblock {
+            background: #111a2e !important;
+            border-color: #263653 !important;
+        }
+
+        .swagger-ui .opblock .opblock-summary-description,
+        .swagger-ui .opblock-description-wrapper,
+        .swagger-ui .response-col_description,
+        .swagger-ui table thead tr td,
+        .swagger-ui table thead tr th {
+            color: #cbd5e1 !important;
+        }
+
+        .swagger-ui .opblock-body,
+        .swagger-ui .responses-inner,
+        .swagger-ui .model-box {
+            background: #17233a !important;
+        }
+
+        .swagger-ui input,
+        .swagger-ui textarea,
+        .swagger-ui select {
+            background: #17233a !important;
+            color: #ffffff !important;
+            border: 1px solid #334766 !important;
+        }
+
+        .swagger-ui .btn {
+            border-radius: 6px;
+        }
+
+        .swagger-ui .btn.execute {
+            background: #7185ff !important;
+            color: #ffffff !important;
+            border-color: #7185ff !important;
+        }
+
+        .swagger-ui .markdown p,
+        .swagger-ui .markdown li,
+        .swagger-ui .renderedMarkdown p {
+            color: #cbd5e1 !important;
+        }
+
+         .swagger-ui .info .title {
+            color: #f8fafc !important;
+        }
+
+        .swagger-ui .opblock-control-arrow svg {
+             fill: #cbd5e1 !important;
+        }
+
+        .swagger-ui .opblock-summary-path {
+            color: #ffffff !important;
+        }
+
+        .swagger-ui a {
+            color: #8ba2ff !important;
+        }
+    .swagger-ui .opblock-section-header {
+    background: #111a2e !important;
+    box-shadow: none !important;
+}
+
+.swagger-ui .opblock-section-header h4,
+.swagger-ui .opblock-section-header label {
+    color: #f8fafc !important;
+}
+
+.swagger-ui .responses-wrapper,
+.swagger-ui .responses-inner,
+.swagger-ui .response,
+.swagger-ui .tab li,
+.swagger-ui .model-box {
+    background: #111a2e !important;
+    color: #e5e7eb !important;
+}
+
+.swagger-ui .response-control-media-type__accept-message {
+    color: #cbd5e1 !important;
+}
+
+.swagger-ui .highlight-code,
+.swagger-ui .microlight {
+    background: #0b1120 !important;
+    color: #e5e7eb !important;
+}
+</style>
+    """
+
+    html_content = html_content.replace(
+        "</head>",
+        dark_theme + "</head>",
+    )
+
+    return HTMLResponse(content=html_content)
 
 HTML = """
 <!DOCTYPE html>
