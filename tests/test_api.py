@@ -308,3 +308,102 @@ def test_defect_lifecycle(client):
 
     assert final_response.status_code == 200, final_response.text
     assert final_response.json()["status"] == "Closed"
+
+
+# --------------------------------------------------
+# TEST EXECUTION LIFECYCLE TEST
+# --------------------------------------------------
+
+def test_execution_lifecycle(client):
+
+    # 1. Verify invalid test case ID returns 404
+    invalid_create = client.post(
+        "/api/executions/",
+        json={"test_case_id": 9999}
+    )
+    assert invalid_create.status_code == 404
+
+    # 2. Create a requirement
+    requirement_response = client.post(
+        "/api/requirements/",
+        json={
+            "title": "Execution Test Requirement",
+            "description": "Requirement for execution testing",
+            "priority": "High",
+            "status": "Open",
+        }
+    )
+    assert requirement_response.status_code in (200, 201)
+    requirement_id = requirement_response.json()["id"]
+
+    # 3. Create a test case
+    test_case_response = client.post(
+        "/api/test-cases/",
+        json={
+            "title": "Verify Login Execution",
+            "description": "Test case for execution lifecycle",
+            "test_steps": "1. Open login page\n2. Enter credentials",
+            "expected_result": "User logs in successfully",
+            "requirement_id": requirement_id,
+        }
+    )
+    assert test_case_response.status_code in (200, 201)
+    test_case_id = test_case_response.json()["id"]
+
+    # 4. Create an execution
+    create_response = client.post(
+        "/api/executions/",
+        json={
+            "test_case_id": test_case_id,
+            "status": "Passed",
+            "actual_result": "Login successful",
+            "execution_notes": "Executed successfully",
+            "executed_by": "QA Tester",
+        }
+    )
+    assert create_response.status_code == 201, create_response.text
+
+    execution_id = create_response.json()["id"]
+    assert create_response.json()["status"] == "Passed"
+
+    # 5. Retrieve the execution
+    get_response = client.get(
+        f"/api/executions/{execution_id}"
+    )
+    assert get_response.status_code == 200
+    assert get_response.json()["id"] == execution_id
+
+    # 6. Verify invalid execution ID returns 404
+    invalid_get = client.get("/api/executions/9999")
+    assert invalid_get.status_code == 404
+
+    # 7. Partially update the execution
+    update_response = client.patch(
+        f"/api/executions/{execution_id}",
+        json={"status": "Failed"}
+    )
+    assert update_response.status_code == 200
+    assert update_response.json()["status"] == "Failed"
+
+    # 8. Verify invalid update returns 404
+    invalid_update = client.patch(
+        "/api/executions/9999",
+        json={"status": "Passed"}
+    )
+    assert invalid_update.status_code == 404
+
+    # 9. Delete the execution
+    delete_response = client.delete(
+        f"/api/executions/{execution_id}"
+    )
+    assert delete_response.status_code == 204
+
+    # 10. Verify deleted execution returns 404
+    final_response = client.get(
+        f"/api/executions/{execution_id}"
+    )
+    assert final_response.status_code == 404
+
+    # 11. Verify deleting invalid execution returns 404
+    invalid_delete = client.delete("/api/executions/9999")
+    assert invalid_delete.status_code == 404
