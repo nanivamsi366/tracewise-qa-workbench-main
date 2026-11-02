@@ -73,6 +73,38 @@ Visit the live application to explore the dashboard and its QA metrics.
 
 ---
 
+## 🏗️ Project Architecture
+
+TraceWise follows a modular architecture that separates API routing, database operations, data models, and automated testing.
+
+```text
+TraceWise QA Workbench
+│
+├── FastAPI Application
+│   ├── Requirements Management
+│   ├── Test Case Management
+│   ├── Test Execution
+│   ├── Defect Tracking
+│   └── Requirements Traceability (RTM)
+│
+├── Data Layer
+│   ├── SQLModel ORM
+│   ├── SQLite (Local)
+│   └── PostgreSQL (Production)
+│
+├── Automated Testing
+│   ├── Pytest
+│   ├── FastAPI TestClient
+│   └── HTML Test Reports
+│
+└── Dashboard
+    ├── QA Metrics
+    ├── Coverage Insights
+    └── Execution Analytics
+```
+
+---
+
 ## 📂 Project Structure
 
 ```text
@@ -114,14 +146,31 @@ tracewise-qa-workbench/
 
 ## 🔗 API Endpoints
 
-| Module | Endpoint | Functionality |
-|---|---|---|
-| Requirements | `/api/requirements/` | Requirement management |
-| Test Cases | `/api/test-cases/` | Test case management |
-| Traceability | `/api/rtm/` | Requirements traceability |
-| Executions | `/api/executions/` | Test execution records |
-| Defects | `/api/defects/` | Defect tracking |
-| Health | `/api/health` | Application health check |
+| Module | Method | Endpoint | Description |
+|---|---|---|---|
+| Requirements | GET | `/api/requirements/` | List requirements |
+| Requirements | POST | `/api/requirements/` | Create requirement |
+| Requirements | GET | `/api/requirements/{requirement_id}` | Get requirement |
+| Requirements | PATCH | `/api/requirements/{requirement_id}` | Update requirement |
+| Requirements | DELETE | `/api/requirements/{requirement_id}` | Delete requirement |
+| Test Cases | GET | `/api/test-cases/` | List test cases |
+| Test Cases | POST | `/api/test-cases/` | Create test case |
+| Test Cases | GET | `/api/test-cases/{test_case_id}` | Get test case |
+| Test Cases | PATCH | `/api/test-cases/{test_case_id}` | Update test case |
+| Test Cases | DELETE | `/api/test-cases/{test_case_id}` | Delete test case |
+| RTM | GET | `/api/rtm/` | Get traceability matrix |
+| Executions | GET | `/api/executions/` | List executions |
+| Executions | POST | `/api/executions/` | Create execution |
+| Executions | GET | `/api/executions/{execution_id}` | Get execution |
+| Executions | PATCH | `/api/executions/{execution_id}` | Update execution |
+| Executions | DELETE | `/api/executions/{execution_id}` | Delete execution |
+| Defects | GET | `/api/defects/` | List defects |
+| Defects | POST | `/api/defects/` | Create defect |
+| Defects | GET | `/api/defects/{defect_id}` | Get defect |
+| Defects | PATCH | `/api/defects/{defect_id}` | Update defect |
+| Defects | DELETE | `/api/defects/{defect_id}` | Delete defect |
+| General | GET | `/` | Home |
+| General | GET | `/api/health` | Health check |
 
 Explore the available API operations through the interactive documentation:
 
