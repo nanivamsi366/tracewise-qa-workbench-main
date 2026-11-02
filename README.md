@@ -300,6 +300,46 @@ This project demonstrates practical understanding of:
 
 ---
 
+## 🧪 Testing & Quality Assurance
+
+TraceWise QA Workbench has been validated through manual API testing and automated test execution.
+
+### Manual API Testing
+
+- Requirements API — CRUD operations
+- Test Cases API — CRUD operations
+- Requirements Traceability Matrix (RTM)
+- Test Execution API — CRUD operations
+- Defects API — CRUD operations
+- Dashboard data verification
+- Positive and negative API scenarios
+
+📄 **[View Manual API Testing Report](docs/manual-api-test-report.md)**
+
+### Automated Testing
+
+Automated API tests were executed using Pytest.
+
+| Metric | Result |
+|---|---:|
+| Total Tests | 9 |
+| Passed | 9 |
+| Failed | 0 |
+| Pass Rate | 100% |
+
+📊 **[View Automated HTML Test Report](reports/automated-test-report.html)**
+
+### Testing Tools
+
+- Swagger UI
+- Pytest
+- Pytest HTML
+- FastAPI TestClient
+
+**Testing Outcome:** All 9 automated tests passed, and all documented manual API test scenarios completed successfully.
+
+---
+
 ## 👨‍💻 Author
 
 **Taraka Venkata Sai Vamsi Sanaboina**
