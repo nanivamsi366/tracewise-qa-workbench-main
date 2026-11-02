@@ -8,6 +8,7 @@ from app.main import app
 from app.database import get_session
 from unittest.mock import Mock
 from app.routers.defects import generate_defect_key
+from app.routers.test_cases import generate_test_case_key
 
 
 # --------------------------------------------------
@@ -687,3 +688,20 @@ def test_test_case_negative_scenarios(client):
     # 8. Delete nonexistent test case
     missing_delete = client.delete("/api/test-cases/99999")
     assert missing_delete.status_code == 404
+
+def test_generate_test_case_key_handles_collision():
+    mock_session = Mock()
+
+    # Latest test case ID is 1
+    # TC-0002 already exists, but TC-0003 does not
+    mock_session.exec.side_effect = [
+        Mock(first=Mock(return_value=1)),
+        Mock(first=Mock(return_value=2)),
+        Mock(first=Mock(return_value=None)),
+    ]
+
+    generated_key = generate_test_case_key(mock_session)
+
+    assert generated_key == "TC-0003"
+    assert mock_session.exec.call_count == 3
+
