@@ -11,6 +11,9 @@
   </a>
   <img src="https://img.shields.io/badge/Python-3.x-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
+  <a href="https://github.com/nanivamsi366/tracewise-qa-workbench-main/actions/workflows/ci.yml">
+  <img src="https://github.com/nanivamsi366/tracewise-qa-workbench-main/actions/workflows/ci.yml/badge.svg" alt="CI Pipeline">
+</a>
 </p>
 
 TraceWise QA Workbench is a web-based Quality Assurance platform designed to organize software testing activities in one centralized workspace. It helps QA engineers manage requirements, create test cases, record test executions, track defects, and monitor requirement coverage through a Requirements Traceability Matrix (RTM).
