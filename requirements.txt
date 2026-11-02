@@ -4,3 +4,4 @@ sqlmodel
 pytest
 httpx
 psycopg[binary]>=3.2,<4
+pytest-html>=4.0
