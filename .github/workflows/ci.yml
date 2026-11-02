@@ -29,7 +29,7 @@ jobs:
       - name: Run automated tests
         run: |
           mkdir -p reports
-          python -m pytest -v --html=reports/automated-test-report.html --self-contained-html
+          python -m pytest -v --cov=app --cov-report=term-missing --html=reports/automated-test-report.html --self-contained-html
 
       - name: Upload HTML test report
         if: always()
