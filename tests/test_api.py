@@ -407,3 +407,72 @@ def test_execution_lifecycle(client):
     # 11. Verify deleting invalid execution returns 404
     invalid_delete = client.delete("/api/executions/9999")
     assert invalid_delete.status_code == 404
+
+def test_requirement_lifecycle(client):
+    # 1. Create a requirement
+    create_response = client.post(
+        "/api/requirements/",
+        json={
+            "title": "Verify User Profile Update",
+            "description": "Verify that users can update their profile details.",
+            "priority": "High",
+            "status": "Draft",
+        },
+    )
+
+    assert create_response.status_code == 201
+    requirement_id = create_response.json()["id"]
+
+    # 2. List requirements
+    list_response = client.get("/api/requirements/")
+    assert list_response.status_code == 200
+    assert any(
+        item["id"] == requirement_id
+        for item in list_response.json()
+    )
+
+    # 3. Retrieve the created requirement
+    get_response = client.get(
+        f"/api/requirements/{requirement_id}"
+    )
+    assert get_response.status_code == 200
+    assert get_response.json()["title"] == "Verify User Profile Update"
+
+    # 4. Retrieve a nonexistent requirement
+    missing_get = client.get("/api/requirements/99999")
+    assert missing_get.status_code == 404
+
+    # 5. Update the requirement
+    update_response = client.patch(
+        f"/api/requirements/{requirement_id}",
+        json={
+            "status": "Open",
+            "priority": "Medium",
+        },
+    )
+    assert update_response.status_code == 200
+    assert update_response.json()["status"] == "Open"
+    assert update_response.json()["priority"] == "Medium"
+
+    # 6. Update a nonexistent requirement
+    missing_update = client.patch(
+        "/api/requirements/99999",
+        json={"status": "Open"},
+    )
+    assert missing_update.status_code == 404
+
+    # 7. Delete the created requirement
+    delete_response = client.delete(
+        f"/api/requirements/{requirement_id}"
+    )
+    assert delete_response.status_code == 204
+
+    # 8. Verify the deleted requirement cannot be retrieved
+    deleted_get = client.get(
+        f"/api/requirements/{requirement_id}"
+    )
+    assert deleted_get.status_code == 404
+
+    # 9. Delete a nonexistent requirement
+    missing_delete = client.delete("/api/requirements/99999")
+    assert missing_delete.status_code == 404
