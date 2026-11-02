@@ -9,6 +9,8 @@ from app.database import get_session
 from unittest.mock import Mock
 from app.routers.defects import generate_defect_key
 from app.routers.test_cases import generate_test_case_key
+import app.database as database
+from unittest.mock import patch
 
 
 # --------------------------------------------------
@@ -787,3 +789,96 @@ def test_rtm_covered_and_uncovered_requirements(client):
     assert uncovered["test_case_count"] == 0
     assert uncovered["test_cases"] == []
 
+def test_get_session_yields_and_closes_session(monkeypatch):
+    class FakeSession:
+        def __init__(self, engine):
+            self.engine = engine
+            self.closed = False
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.closed = True
+
+    fake_session = FakeSession("test-engine")
+
+    monkeypatch.setattr(
+        database,
+        "Session",
+        lambda engine: fake_session,
+    )
+
+    generator = database.get_session()
+
+    yielded_session = next(generator)
+
+    assert yielded_session is fake_session
+    assert yielded_session.engine == "test-engine"
+
+    generator.close()
+
+    assert fake_session.closed is True
+
+def test_database_postgres_url_normalization(monkeypatch):
+    import importlib
+    import sqlmodel
+    import app.database as database_module
+
+    original_create_engine = sqlmodel.create_engine
+    original_engine = database_module.engine
+    captured = {}
+
+    def fake_create_engine(url, **kwargs):
+        captured["url"] = url
+        captured["kwargs"] = kwargs
+        return "fake-engine"
+
+    monkeypatch.setenv(
+        "DATABASE_URL",
+        "postgres://user:password@localhost:5432/tracewise",
+    )
+
+    try:
+        monkeypatch.setattr(
+            sqlmodel,
+            "create_engine",
+            fake_create_engine,
+        )
+
+        importlib.reload(database_module)
+
+        assert captured["url"] == (
+            "postgresql://user:password@localhost:5432/tracewise"
+        )
+        assert captured["kwargs"]["connect_args"] == {}
+        assert database_module.engine == "fake-engine"
+
+    finally:
+        monkeypatch.setattr(
+            sqlmodel,
+            "create_engine",
+            original_create_engine,
+        )
+        monkeypatch.delenv("DATABASE_URL", raising=False)
+        
+        original_engine.dispose()
+        importlib.reload(database_module)
+
+def test_home_dashboard_returns_html(client):
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert len(response.text) > 0
+
+def test_health_check_returns_success(client):
+    response = client.get("/api/health")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["status"] == "ok"
+    assert data["message"] == "TraceWise server is running!"
+    assert "checked_at" in data
