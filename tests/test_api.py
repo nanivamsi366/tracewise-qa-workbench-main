@@ -705,3 +705,85 @@ def test_generate_test_case_key_handles_collision():
     assert generated_key == "TC-0003"
     assert mock_session.exec.call_count == 3
 
+def test_rtm_summary_with_no_requirements(client):
+    response = client.get("/api/rtm/")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["total_requirements"] == 0
+    assert data["covered_requirements"] == 0
+    assert data["uncovered_requirements"] == 0
+    assert data["coverage_percentage"] == 0.0
+    assert data["traceability_matrix"] == []
+
+def test_rtm_covered_and_uncovered_requirements(client):
+    # Create a covered requirement
+    covered_requirement = client.post(
+        "/api/requirements/",
+        json={
+            "title": "Covered Requirement",
+            "description": "This requirement has a linked test case.",
+        },
+    )
+    assert covered_requirement.status_code == 201
+    covered_id = covered_requirement.json()["id"]
+
+    # Create an uncovered requirement
+    uncovered_requirement = client.post(
+        "/api/requirements/",
+        json={
+            "title": "Uncovered Requirement",
+            "description": "This requirement has no linked test case.",
+        },
+    )
+    assert uncovered_requirement.status_code == 201
+
+    # Link a test case to the first requirement
+    test_case = client.post(
+        "/api/test-cases/",
+        json={
+            "requirement_id": covered_id,
+            "title": "Verify Covered Requirement",
+            "description": "Test coverage validation.",
+            "test_steps": "Execute the test.",
+            "expected_result": "The requirement is satisfied.",
+            "priority": "High",
+            "status": "Ready",
+        },
+    )
+    assert test_case.status_code == 201
+
+    # Verify RTM
+    response = client.get("/api/rtm/")
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["total_requirements"] == 2
+    assert data["covered_requirements"] == 1
+    assert data["uncovered_requirements"] == 1
+    assert data["coverage_percentage"] == 50.0
+
+    matrix = data["traceability_matrix"]
+
+    covered = next(
+        item for item in matrix
+        if item["requirement_id"] == covered_id
+    )
+
+    assert covered["coverage_status"] == "Covered"
+    assert covered["test_case_count"] == 1
+    assert covered["test_cases"][0]["priority"] == "High"
+    assert covered["test_cases"][0]["status"] == "Ready"
+
+    uncovered = next(
+        item for item in matrix
+        if item["requirement_title"] == "Uncovered Requirement"
+    )
+
+    assert uncovered["coverage_status"] == "Not Covered"
+    assert uncovered["test_case_count"] == 0
+    assert uncovered["test_cases"] == []
+
