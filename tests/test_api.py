@@ -621,3 +621,69 @@ def test_generate_defect_key_handles_collision():
     assert generated_key == "BUG-0003"
     assert mock_session.exec.call_count == 3
 
+def test_test_case_negative_scenarios(client):
+    # 1. Create test case with invalid requirement ID
+    invalid_create = client.post(
+        "/api/test-cases/",
+        json={
+            "requirement_id": 99999,
+            "title": "Invalid Test Case",
+            "description": "This should not be created.",
+            "test_steps": "Execute test.",
+            "expected_result": "Test passes.",
+        },
+    )
+    assert invalid_create.status_code == 404
+
+    # 2. Create a valid requirement
+    requirement = client.post(
+        "/api/requirements/",
+        json={
+            "title": "Test Case Validation",
+            "description": "Requirement for test case validation.",
+        },
+    )
+    assert requirement.status_code == 201
+    requirement_id = requirement.json()["id"]
+
+    # 3. Create a valid test case
+    test_case = client.post(
+        "/api/test-cases/",
+        json={
+            "requirement_id": requirement_id,
+            "title": "Verify Login Validation",
+            "description": "Verify login error handling.",
+            "test_steps": "Enter invalid credentials.",
+            "expected_result": "An error message is displayed.",
+        },
+    )
+    assert test_case.status_code == 201
+    test_case_id = test_case.json()["id"]
+
+    # 4. Retrieve nonexistent test case
+    missing_get = client.get("/api/test-cases/99999")
+    assert missing_get.status_code == 404
+
+    # 5. Update test case with invalid requirement ID
+    invalid_update = client.patch(
+        f"/api/test-cases/{test_case_id}",
+        json={"requirement_id": 99999},
+    )
+    assert invalid_update.status_code == 404
+
+    # 6. Update nonexistent test case
+    missing_update = client.patch(
+        "/api/test-cases/99999",
+        json={"status": "Ready"},
+    )
+    assert missing_update.status_code == 404
+
+    # 7. Delete valid test case
+    delete_response = client.delete(
+        f"/api/test-cases/{test_case_id}"
+    )
+    assert delete_response.status_code == 204
+
+    # 8. Delete nonexistent test case
+    missing_delete = client.delete("/api/test-cases/99999")
+    assert missing_delete.status_code == 404
