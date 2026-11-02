@@ -1,3 +1,5 @@
+__test__ = False
+
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -28,6 +30,7 @@ class Requirement(SQLModel, table=True):
 
 
 class TestCase(SQLModel, table=True):
+    __test__ = False
     id: Optional[int] = Field(default=None, primary_key=True)
 
     test_case_key: str = Field(

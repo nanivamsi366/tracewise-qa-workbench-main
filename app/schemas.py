@@ -1,3 +1,5 @@
+__test__ = False
+
 from datetime import datetime
 from typing import Optional
 
@@ -38,6 +40,7 @@ class RequirementUpdate(SQLModel):
 # ==============================
 
 class TestCaseBase(SQLModel):
+    __test__ = False
     requirement_id: int
     title: str
     description: str
@@ -49,10 +52,12 @@ class TestCaseBase(SQLModel):
 
 
 class TestCaseCreate(TestCaseBase):
+    __test__ = False
     pass
 
 
 class TestCaseRead(TestCaseBase):
+    __test__ = False
     id: int
     test_case_key: str
     created_at: datetime
@@ -60,6 +65,7 @@ class TestCaseRead(TestCaseBase):
 
 
 class TestCaseUpdate(SQLModel):
+    __test__ = False
     requirement_id: Optional[int] = None
     title: Optional[str] = None
     description: Optional[str] = None
