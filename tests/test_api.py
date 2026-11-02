@@ -6,6 +6,8 @@ from sqlalchemy.pool import StaticPool
 
 from app.main import app
 from app.database import get_session
+from unittest.mock import Mock
+from app.routers.defects import generate_defect_key
 
 
 # --------------------------------------------------
@@ -476,3 +478,146 @@ def test_requirement_lifecycle(client):
     # 9. Delete a nonexistent requirement
     missing_delete = client.delete("/api/requirements/99999")
     assert missing_delete.status_code == 404
+
+def test_defect_negative_scenarios(client):
+    # 1. Create defect with nonexistent test case
+    invalid_create = client.post(
+        "/api/defects/",
+        json={
+            "test_case_id": 99999,
+            "title": "Invalid test case defect",
+            "description": "This should not be created.",
+        },
+    )
+    assert invalid_create.status_code == 404
+
+    # 2. Create a requirement
+    requirement_response = client.post(
+        "/api/requirements/",
+        json={
+            "title": "Defect Test Requirement",
+            "description": "Requirement for defect testing.",
+        },
+    )
+    assert requirement_response.status_code == 201
+    requirement_id = requirement_response.json()["id"]
+
+    # 3. Create a test case
+    test_case_response = client.post(
+        "/api/test-cases/",
+        json={
+            "requirement_id": requirement_id,
+            "title": "Defect Test Case",
+            "description": "Test case for defect lifecycle.",
+            "test_steps": "Perform the test.",
+            "expected_result": "Test passes.",
+        },
+    )
+    assert test_case_response.status_code == 201
+    test_case_id = test_case_response.json()["id"]
+
+    # 4. Create a valid defect
+    defect_response = client.post(
+        "/api/defects/",
+        json={
+            "test_case_id": test_case_id,
+            "title": "Profile update failure",
+            "description": "Profile changes are not saved.",
+        },
+    )
+    assert defect_response.status_code == 201
+    defect_id = defect_response.json()["id"]
+
+    # 5. Update defect using invalid test case ID
+    invalid_update = client.patch(
+        f"/api/defects/{defect_id}",
+        json={"test_case_id": 99999},
+    )
+    assert invalid_update.status_code == 404
+    assert invalid_update.json()["detail"] == "Test case not found"
+
+    # 6. Update nonexistent defect
+    missing_update = client.patch(
+        "/api/defects/99999",
+        json={"status": "Closed"},
+    )
+    assert missing_update.status_code == 404
+
+    # 7. Retrieve nonexistent defect
+    missing_get = client.get("/api/defects/99999")
+    assert missing_get.status_code == 404
+
+    # 8. Delete the valid defect
+    delete_response = client.delete(
+        f"/api/defects/{defect_id}"
+    )
+    assert delete_response.status_code == 204
+
+    # 9. Delete nonexistent defect
+    missing_delete = client.delete("/api/defects/99999")
+    assert missing_delete.status_code == 404
+
+def test_defect_key_generation_handles_existing_key(client):
+    # Create requirement
+    requirement = client.post(
+        "/api/requirements/",
+        json={
+            "title": "Defect Key Test",
+            "description": "Testing unique defect key generation.",
+        },
+    )
+    requirement_id = requirement.json()["id"]
+
+    # Create test case
+    test_case = client.post(
+        "/api/test-cases/",
+        json={
+            "requirement_id": requirement_id,
+            "title": "Defect Key Test Case",
+            "description": "Verify defect key generation.",
+            "test_steps": "Execute test.",
+            "expected_result": "Test passes.",
+        },
+    )
+    test_case_id = test_case.json()["id"]
+
+    # Create first defect
+    first = client.post(
+        "/api/defects/",
+        json={
+            "test_case_id": test_case_id,
+            "title": "First defect",
+            "description": "First defect description.",
+        },
+    )
+    assert first.status_code == 201
+
+    # Create second defect and verify unique key
+    second = client.post(
+        "/api/defects/",
+        json={
+            "test_case_id": test_case_id,
+            "title": "Second defect",
+            "description": "Second defect description.",
+        },
+    )
+    assert second.status_code == 201
+    assert second.json()["defect_key"] != first.json()["defect_key"]
+
+def test_generate_defect_key_handles_collision():
+    mock_session = Mock()
+
+    # First query: latest defect ID is 1
+    # Second query: BUG-0002 already exists
+    # Third query: BUG-0003 does not exist
+    mock_session.exec.side_effect = [
+        Mock(first=Mock(return_value=1)),
+        Mock(first=Mock(return_value=2)),
+        Mock(first=Mock(return_value=None)),
+    ]
+
+    generated_key = generate_defect_key(mock_session)
+
+    assert generated_key == "BUG-0003"
+    assert mock_session.exec.call_count == 3
+
