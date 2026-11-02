@@ -305,17 +305,74 @@ This project demonstrates practical understanding of:
 
 ## 🧪 Testing & Quality Assurance
 
-TraceWise QA Workbench has been validated through manual API testing and automated test execution.
+TraceWise QA Workbench has been validated through manual API testing, automated testing, and production dashboard verification.
 
-### Manual API Testing
+Manual API Testing
 
-- Requirements API — CRUD operations
-- Test Cases API — CRUD operations
-- Requirements Traceability Matrix (RTM)
-- Test Execution API — CRUD operations
-- Defects API — CRUD operations
-- Dashboard data verification
-- Positive and negative API scenarios
+Requirements API — Create, Read, Update, Delete
+
+Test Cases API — CRUD and negative scenarios
+
+Requirements Traceability Matrix (RTM) — Coverage validation
+
+Test Execution API — CRUD operations
+
+Defects API — CRUD and negative scenarios
+
+HTTP status code and response validation
+
+Dashboard data verification
+
+📄 View Manual API Testing Report
+
+Automated Testing Results
+
+Metric
+
+Result
+
+| Total Test Case | 22 |
+| Passed | 22 |
+| Failed | 0 |
+| Pass Rate |100% |
+| Code Coverage | 100% |
+| Statements Covered | 386 / 386 |
+
+📊 View Automated HTML Test Report
+
+Testing Tools
+
+Python and Pytest
+
+FastAPI TestClient
+
+HTTPX
+
+Swagger UI
+
+Pytest-Cov
+
+Pytest-HTML
+
+GitHub Actions CI
+
+Quality Assurance Evidence
+
+Positive and negative test scenarios
+
+API CRUD validation
+
+Test case lifecycle validation
+
+Defect lifecycle and collision handling
+
+Requirement traceability validation
+
+Database session and configuration testing
+
+Automated test execution through CI
+
+Testing Outcome: All 22 automated tests passed with 100% code coverage across 386 application statements.
 
 📄 **[View Manual API Testing Report](docs/manual-api-test-report.md)**
 
